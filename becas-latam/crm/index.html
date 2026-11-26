@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="es-CL">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="robots" content="noindex, nofollow">
+<title>CRM Becas LATAM</title>
+<link rel="icon" href="/assets/favicon.svg" type="image/svg+xml">
+<style>
+  :root {
+    --navy: #021B45; --navy-2: #0B2A5E; --sky: #5EC8F2; --lav: #C9C3F2;
+    --bg: #F4F5F8; --card: #FFFFFF; --ink: #0E1A2E; --muted: #5E6A80; --line: #E2E6EE;
+    --hot: #E5484D; --warm: #F5A524; --cold: #5E8BD6; --ok: #2F9E6B;
+    --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  body { margin: 0; font: 15px/1.45 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; background: var(--bg); color: var(--ink); }
+  button, input, select, textarea { font: inherit; color: inherit; }
+  button { cursor: pointer; }
+  .hidden { display: none !important; }
+
+  /* Login */
+  .login { min-height: 100vh; display: grid; place-items: center; background: var(--navy); padding: 16px; }
+  .login form { background: var(--card); border-radius: 16px; padding: 28px; width: min(360px, 100%); display: grid; gap: 14px; }
+  .login h1 { margin: 0; font-size: 20px; }
+  .login p { margin: 0; color: var(--muted); font-size: 14px; }
+
+  /* Layout */
+  header.top { background: var(--navy); color: #fff; padding: 14px 16px; position: sticky; top: 0; z-index: 5; }
+  .top__row { max-width: 1200px; margin: 0 auto; display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .top h1 { font-size: 17px; margin: 0 auto 0 0; letter-spacing: .02em; }
+  .top h1 span { color: var(--sky); }
+  main { max-width: 1200px; margin: 0 auto; padding: 16px; }
+
+  .btn { border: 1px solid var(--line); background: var(--card); border-radius: 10px; padding: 8px 14px; font-weight: 600; }
+  .btn--primary { background: var(--sky); border-color: var(--sky); color: var(--navy); }
+  .btn--navy { background: var(--navy); border-color: var(--navy); color: #fff; }
+  .btn--ghost { background: transparent; border-color: rgba(255,255,255,.35); color: #fff; }
+  .btn--danger { color: var(--hot); }
+  .btn:disabled { opacity: .45; cursor: not-allowed; }
+
+  input[type=text], input[type=email], input[type=tel], input[type=date], input[type=url], input[type=password], input[type=search], select, textarea {
+    width: 100%; border: 1px solid var(--line); border-radius: 10px; padding: 9px 11px; background: #fff;
+  }
+  textarea { min-height: 90px; resize: vertical; }
+
+  /* Filtros */
+  .chips { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .chip { border: 1px solid var(--line); background: var(--card); border-radius: 999px; padding: 6px 12px; font-size: 13px; font-weight: 600; }
+  .chip b { color: var(--muted); font-weight: 600; margin-left: 4px; }
+  .chip.is-on { background: var(--navy); color: #fff; border-color: var(--navy); }
+  .chip.is-on b { color: var(--lav); }
+  .filters { display: grid; grid-template-columns: 2fr 1fr 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+
+  /* Lista */
+  .list { display: grid; gap: 8px; }
+  .row { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 12px 14px; display: grid;
+         grid-template-columns: 2.2fr 1.4fr 1fr 1fr 1fr; gap: 10px; align-items: center; cursor: pointer; text-align: left; width: 100%; }
+  .row:hover { border-color: var(--sky); }
+  .row__name { font-weight: 700; }
+  .row__sub { color: var(--muted); font-size: 13px; }
+  .badge { display: inline-block; border-radius: 999px; padding: 2px 9px; font-size: 12px; font-weight: 700; background: #EEF1F6; color: var(--navy-2); }
+  .t-Caliente { background: #FDE8E8; color: var(--hot); }
+  .t-Tibio { background: #FEF3DC; color: #A86A00; }
+  .t-Frío { background: #E6EEFA; color: var(--cold); }
+  .e-Calificado { background: #E2F5EC; color: var(--ok); }
+  .e-En-Pipedrive { background: var(--navy); color: #fff; }
+  .e-Descartado { background: #F1F1F1; color: #8A8A8A; }
+  .due { color: var(--hot); font-weight: 700; }
+  .empty { text-align: center; color: var(--muted); padding: 40px 16px; background: var(--card); border-radius: var(--radius); border: 1px dashed var(--line); }
+
+  /* Panel de detalle */
+  .drawer { position: fixed; inset: 0; background: rgba(2,27,69,.45); display: flex; justify-content: flex-end; z-index: 10; }
+  .drawer__panel { background: var(--bg); width: min(560px, 100%); height: 100%; overflow-y: auto; padding: 18px 16px 90px; }
+  .drawer__head { display: flex; align-items: start; gap: 10px; margin-bottom: 12px; }
+  .drawer__head h2 { margin: 0; font-size: 20px; flex: 1; }
+  .box { background: var(--card); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; margin-bottom: 12px; }
+  .box h3 { margin: 0 0 10px; font-size: 13px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  label.f { display: grid; gap: 4px; font-size: 13px; color: var(--muted); font-weight: 600; }
+  .check { display: flex; gap: 10px; align-items: center; padding: 6px 0; font-weight: 600; }
+  .check input { width: 18px; height: 18px; accent-color: var(--navy); }
+  .contact { display: flex; gap: 8px; flex-wrap: wrap; }
+  .contact a { text-decoration: none; }
+  .hist { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 13px; }
+  .hist time { color: var(--muted); margin-right: 6px; }
+  .kv { display: grid; grid-template-columns: 140px 1fr; gap: 4px 10px; font-size: 13px; }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; word-break: break-word; }
+  .actions { position: fixed; bottom: 0; right: 0; width: min(560px, 100%); background: var(--card); border-top: 1px solid var(--line);
+             padding: 12px 16px; display: flex; gap: 8px; flex-wrap: wrap; }
+  .actions .spacer { flex: 1; }
+  .msg { font-size: 13px; color: var(--muted); align-self: center; }
+  .pd-link { font-weight: 700; color: var(--navy-2); }
+
+  .toast { position: fixed; left: 50%; bottom: 20px; transform: translateX(-50%); background: var(--navy); color: #fff; padding: 10px 16px; border-radius: 10px; z-index: 20; font-weight: 600; }
+
+  @media (max-width: 760px) {
+    .filters { grid-template-columns: 1fr 1fr; }
+    .filters .q { grid-column: 1 / -1; }
+    .row { grid-template-columns: 1fr auto; }
+    .row .hide-sm { display: none; }
+    .grid2 { grid-template-columns: 1fr; }
+    .kv { grid-template-columns: 110px 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<section class="login" id="login">
+  <form id="login-form">
+    <h1>CRM Becas LATAM</h1>
+    <p>Entra con tu clave para ver tus leads.</p>
+    <input type="password" id="login-key" placeholder="Clave" autocomplete="current-password" required>
+    <button class="btn btn--navy" type="submit">Entrar</button>
+    <p id="login-error" style="color:var(--hot)"></p>
+  </form>
+</section>
+
+<div id="app" class="hidden">
+  <header class="top">
+    <div class="top__row">
+      <h1>CRM <span>Becas LATAM</span></h1>
+      <button class="btn btn--ghost" id="btn-refresh" type="button">Actualizar</button>
+      <button class="btn btn--primary" id="btn-new" type="button">+ Nuevo lead</button>
+    </div>
+  </header>
+
+  <main>
+    <div class="chips" id="chips"></div>
+    <div class="filters">
+      <input class="q" type="search" id="f-q" placeholder="Buscar por nombre, email, WhatsApp o Instagram">
+      <select id="f-fuente"><option value="">Todas las fuentes</option></select>
+      <select id="f-temp">
+        <option value="">Todo puntaje</option>
+        <option>Caliente</option><option>Tibio</option><option>Frío</option>
+      </select>
+      <select id="f-orden">
+        <option value="reciente">Más recientes</option>
+        <option value="puntaje">Mayor puntaje</option>
+        <option value="seguimiento">Próximo seguimiento</option>
+      </select>
+    </div>
+    <div class="list" id="list"></div>
+  </main>
+</div>
+
+<div class="drawer hidden" id="drawer">
+  <div class="drawer__panel" role="dialog" aria-modal="true" aria-labelledby="d-title">
+    <div class="drawer__head">
+      <h2 id="d-title">Lead</h2>
+      <button class="btn" type="button" id="d-close" aria-label="Cerrar">✕</button>
+    </div>
+    <form id="d-form"></form>
+  </div>
+  <div class="actions">
+    <button class="btn btn--danger" type="button" id="d-delete">Borrar</button>
+    <span class="spacer"></span>
+    <span class="msg" id="d-msg"></span>
+    <button class="btn" type="button" id="d-save">Guardar</button>
+    <button class="btn btn--navy" type="button" id="d-push">Enviar a Pipedrive</button>
+  </div>
+</div>
+
+<script>
+(() => {
+  const $ = (s, el = document) => el.querySelector(s);
+  const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const store = {
+    get(k) { try { return localStorage.getItem(k); } catch { return null; } },
+    set(k, v) { try { localStorage.setItem(k, v); } catch {} },
+    del(k) { try { localStorage.removeItem(k); } catch {} },
+  };
+
+  const OPC = {
+    deporte: ["Fútbol", "Tenis", "Golf", "Vóley", "Natación", "Atletismo", "Básquetbol", "Hockey", "Otro"],
+    curso: ["7° básico o menos", "8° básico", "1° medio", "2° medio", "3° medio", "4° medio", "Egresado/a"],
+    pais: ["Chile", "Argentina", "Perú", "Colombia", "México", "Uruguay", "Paraguay", "Bolivia", "Ecuador", "Venezuela", "Otro"],
+    nivel: ["Colegio", "Club", "Federado / regional", "Selección nacional", "Universidad"],
+    notas: ["Muy bien", "Bien", "Regular"],
+    ingles: ["Básico", "Intermedio", "Avanzado"],
+    quien: ["Deportista", "Papá / mamá"],
+  };
+
+  let KEY = store.get("crm-key") || "";
+  let LEADS = [], ESTADOS = [], FUENTES = [];
+  let filtroEstado = store.get("crm-estado") || "Activos";
+  let abierto = null;
+
+  async function api(accion, data) {
+    const res = await fetch(`/api/crm?accion=${accion}`, {
+      method: data ? "POST" : "GET",
+      headers: { "Content-Type": "application/json", "x-crm-key": KEY },
+      body: data ? JSON.stringify(data) : undefined,
+    });
+    const json = await res.json().catch(() => ({ ok: false, error: "Respuesta inválida" }));
+    if (res.status === 401) { salir(); throw new Error("Clave incorrecta"); }
+    if (!json.ok) throw new Error(json.error || "Error " + res.status);
+    return json;
+  }
+
+  function toast(t) {
+    const el = document.createElement("div");
+    el.className = "toast"; el.textContent = t;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2600);
+  }
+
+  function salir() {
+    KEY = ""; store.del("crm-key");
+    $("#app").classList.add("hidden"); $("#login").classList.remove("hidden");
+  }
+
+  /* ---------- Login ---------- */
+  $("#login-form").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    KEY = $("#login-key").value.trim();
+    $("#login-error").textContent = "";
+    try { await cargar(); store.set("crm-key", KEY); }
+    catch (err) { $("#login-error").textContent = err.message; }
+  });
+
+  async function cargar() {
+    const r = await api("leads");
+    LEADS = r.leads; ESTADOS = r.estados; FUENTES = r.fuentes;
+    $("#login").classList.add("hidden"); $("#app").classList.remove("hidden");
+    const sel = $("#f-fuente");
+    if (sel.options.length === 1) FUENTES.forEach((f) => sel.add(new Option(f, f)));
+    pintar();
+  }
+
+  /* ---------- Lista ---------- */
+  const hoy = () => new Date().toISOString().slice(0, 10);
+  const fecha = (iso) => iso ? new Date(iso).toLocaleDateString("es-CL", { day: "numeric", month: "short" }) : "";
+  const fechaHora = (iso) => iso ? new Date(iso).toLocaleString("es-CL", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" }) : "";
+  const cls = (s) => String(s).replace(/\s+/g, "-");
+  const activo = (l) => !["Descartado", "En Pipedrive"].includes(l.estado);
+
+  function pintar() {
+    const grupos = [["Activos", LEADS.filter(activo).length], ["Para hoy", LEADS.filter((l) => activo(l) && l.seguimiento && l.seguimiento <= hoy()).length]]
+      .concat(ESTADOS.map((e) => [e, LEADS.filter((l) => l.estado === e).length]))
+      .concat([["Todos", LEADS.length]]);
+    $("#chips").innerHTML = grupos.map(([n, c]) =>
+      `<button type="button" class="chip ${filtroEstado === n ? "is-on" : ""}" data-e="${esc(n)}">${esc(n)}<b>${c}</b></button>`).join("");
+
+    const q = $("#f-q").value.trim().toLowerCase();
+    const fuente = $("#f-fuente").value, temp = $("#f-temp").value, orden = $("#f-orden").value;
+    let rows = LEADS.filter((l) => {
+      if (filtroEstado === "Activos" && !activo(l)) return false;
+      if (filtroEstado === "Para hoy" && !(activo(l) && l.seguimiento && l.seguimiento <= hoy())) return false;
+      if (ESTADOS.includes(filtroEstado) && l.estado !== filtroEstado) return false;
+      if (fuente && l.fuente !== fuente) return false;
+      if (temp && l.temperatura !== temp) return false;
+      if (q && ![l.nombre, l.email, l.whatsapp, l.instagram].some((v) => String(v || "").toLowerCase().includes(q))) return false;
+      return true;
+    });
+    if (orden === "puntaje") rows.sort((a, b) => (b.puntaje || 0) - (a.puntaje || 0));
+    if (orden === "seguimiento") rows.sort((a, b) => (a.seguimiento || "9999").localeCompare(b.seguimiento || "9999"));
+
+    $("#list").innerHTML = rows.length ? rows.map((l) => `
+      <button type="button" class="row" data-id="${esc(l.id)}">
+        <div><div class="row__name">${esc(l.nombre)}</div>
+          <div class="row__sub">${esc([l.deporte, l.curso, l.pais].filter(Boolean).join(" · ") || "Sin datos deportivos")}</div></div>
+        <div class="hide-sm row__sub">${esc(l.fuente)} · entró ${esc(fecha(l.creado))}</div>
+        <div class="hide-sm"><span class="badge t-${esc(l.temperatura)}">${esc(l.temperatura)} ${esc(l.puntaje)}/10</span></div>
+        <div class="hide-sm row__sub ${l.seguimiento && l.seguimiento <= hoy() && activo(l) ? "due" : ""}">${l.seguimiento ? "Seguir: " + esc(fecha(l.seguimiento + "T12:00:00")) : ""}</div>
+        <div style="text-align:right"><span class="badge e-${esc(cls(l.estado))}">${esc(l.estado)}</span></div>
+      </button>`).join("")
+      : `<div class="empty">No hay leads con estos filtros.</div>`;
+  }
+
+  $("#chips").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-e]"); if (!b) return;
+    filtroEstado = b.dataset.e; store.set("crm-estado", filtroEstado); pintar();
+  });
+  ["#f-q", "#f-fuente", "#f-temp", "#f-orden"].forEach((s) => $(s).addEventListener("input", pintar));
+  $("#list").addEventListener("click", (e) => { const r = e.target.closest("[data-id]"); if (r) abrir(LEADS.find((l) => l.id === r.dataset.id)); });
+  $("#btn-refresh").addEventListener("click", () => cargar().then(() => toast("Actualizado")).catch((e) => toast(e.message)));
+  $("#btn-new").addEventListener("click", () => abrir(null));
+
+  /* ---------- Detalle ---------- */
+  const sel = (name, val, opts, vacio = "—") =>
+    `<select name="${name}"><option value="">${vacio}</option>${opts.map((o) => `<option ${o === val ? "selected" : ""}>${esc(o)}</option>`).join("")}${val && !opts.includes(val) ? `<option selected>${esc(val)}</option>` : ""}</select>`;
+  const inp = (name, val, type = "text", ph = "") => `<input type="${type}" name="${name}" value="${esc(val)}" placeholder="${esc(ph)}">`;
+  const f = (label, html) => `<label class="f">${label}${html}</label>`;
+
+  function abrir(l) {
+    abierto = l;
+    const n = !l;
+    l = l || { estado: "Nuevo", fuente: "WhatsApp", criterios: {} };
+    $("#d-title").textContent = n ? "Nuevo lead" : l.nombre;
+    const tel = String(l.whatsapp || "").replace(/\D/g, "");
+    const c = l.criterios || {};
+    const cursoOk = ["2° medio", "3° medio", "4° medio", "Egresado/a"].includes(l.curso) || (Number(l.edad) >= 15 && Number(l.edad) <= 22);
+    const nivelOk = ["Club", "Federado / regional", "Selección nacional", "Universidad"].includes(l.nivel);
+
+    $("#d-form").innerHTML = `
+      ${n ? "" : `<div class="box">
+        <div class="contact">
+          ${tel ? `<a class="btn" target="_blank" rel="noopener" href="https://wa.me/${tel}">WhatsApp</a>` : ""}
+          ${l.email ? `<a class="btn" href="mailto:${esc(l.email)}">Email</a>` : ""}
+          ${l.instagram ? `<a class="btn" target="_blank" rel="noopener" href="https://instagram.com/${esc(l.instagram)}">Instagram</a>` : ""}
+          <span class="badge t-${esc(l.temperatura)}" style="align-self:center">${esc(l.temperatura)} ${esc(l.puntaje)}/10</span>
+        </div>
+        ${l.pipedrive ? `<p style="margin:10px 0 0">En Pipedrive: <a class="pd-link" target="_blank" rel="noopener" href="${esc(l.pipedrive.url)}">trato #${esc(l.pipedrive.dealId)}</a> · ${esc(fechaHora(l.pipedrive.fecha))}</p>` : ""}
+      </div>`}
+
+      <div class="box">
+        <h3>Seguimiento</h3>
+        <div class="grid2">
+          ${f("Estado", sel("estado", l.estado, ESTADOS, "Nuevo").replace('<option value="">Nuevo</option>', ""))}
+          ${f("Próximo seguimiento", inp("seguimiento", l.seguimiento, "date"))}
+        </div>
+        <div style="margin-top:10px">${f("Notas", `<textarea name="notasNico" placeholder="Lo que hablaron, dudas de la familia, próximos pasos…">${esc(l.notasNico)}</textarea>`)}</div>
+      </div>
+
+      <div class="box">
+        <h3>¿Está calificado?</h3>
+        <div class="check"><input type="checkbox" disabled ${cursoOk ? "checked" : ""}> Edad o curso para empezar (2° medio o más, o 15 a 22 años)</div>
+        <div class="check"><input type="checkbox" disabled ${nivelOk ? "checked" : ""}> Compite en club, federado, selección o universidad</div>
+        <label class="check"><input type="checkbox" name="c_presupuesto" ${c.presupuesto ? "checked" : ""}> La familia conoce la inversión (US$14.000 a 25.000) y puede hacerla</label>
+        <label class="check"><input type="checkbox" name="c_video" ${c.video ? "checked" : ""}> Tiene video o puede conseguirlo</label>
+        <label class="check"><input type="checkbox" name="c_llamada" ${c.llamada ? "checked" : ""}> Ya tuvo la llamada de diagnóstico y quiere avanzar</label>
+        <p class="row__sub" style="margin:8px 0 0">Cuando esté listo, cambia el estado a <b>Calificado</b>, guarda y aprieta <b>Enviar a Pipedrive</b>.</p>
+      </div>
+
+      <div class="box">
+        <h3>Datos</h3>
+        <div class="grid2">
+          ${f("Nombre y apellido", inp("nombre", l.nombre))}
+          ${f("Fuente", sel("fuente", l.fuente, FUENTES, "Otro").replace('<option value="">Otro</option>', ""))}
+          ${f("WhatsApp", inp("whatsapp", l.whatsapp, "tel", "+56 9 1234 5678"))}
+          ${f("Email", inp("email", l.email, "email"))}
+          ${f("Instagram", inp("instagram", l.instagram, "text", "usuario"))}
+          ${f("Quién escribe", sel("quien", l.quien, OPC.quien))}
+          ${f("Deporte", sel("deporte", l.deporte, OPC.deporte))}
+          ${f("Curso", sel("curso", l.curso, OPC.curso))}
+          ${f("Edad", inp("edad", l.edad, "text"))}
+          ${f("País", sel("pais", l.pais, OPC.pais))}
+          ${f("Nivel", sel("nivel", l.nivel, OPC.nivel))}
+          ${f("Colegio", sel("notas", l.notas, OPC.notas))}
+          ${f("Inglés", sel("ingles", l.ingles, OPC.ingles))}
+          ${f("Año de ingreso a la U", inp("anioIngreso", l.anioIngreso, "text", "2027"))}
+        </div>
+        <div style="margin-top:10px">${f("Video (link)", inp("video", l.video, "url", "YouTube o Drive"))}</div>
+      </div>
+
+      ${n ? "" : `
+      ${Object.keys(l.respuestas || {}).length ? `<div class="box"><h3>Respuestas de la encuesta</h3><dl class="kv">${Object.entries(l.respuestas).filter(([, v]) => v).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div>` : ""}
+      ${Object.keys(l.utm || {}).length ? `<div class="box"><h3>Campaña</h3><dl class="kv">${Object.entries(l.utm).map(([k, v]) => `<dt>${esc(k)}</dt><dd>${esc(v)}</dd>`).join("")}</dl></div>` : ""}
+      <div class="box"><h3>Historial</h3><ul class="hist">${(l.historial || []).slice().reverse().map((h) => `<li><time>${esc(fechaHora(h.fecha))}</time>${esc(h.texto)}</li>`).join("")}</ul></div>`}
+    `;
+
+    $("#d-delete").classList.toggle("hidden", n);
+    $("#d-push").classList.toggle("hidden", n);
+    $("#d-push").disabled = !["Calificado", "En Pipedrive"].includes(l.estado);
+    $("#d-push").textContent = l.pipedrive ? "Reenviar nota a Pipedrive" : "Enviar a Pipedrive";
+    $("#d-msg").textContent = "";
+    $("#drawer").classList.remove("hidden");
+  }
+
+  $("#d-form").addEventListener("change", (e) => {
+    if (e.target.name === "estado" && abierto) {
+      const ok = ["Calificado", "En Pipedrive"].includes(e.target.value);
+      $("#d-push").disabled = !ok;
+      $("#d-msg").textContent = ok ? "" : "Para enviar a Pipedrive, el estado tiene que ser Calificado";
+    }
+  });
+
+  function leerForm() {
+    const fd = new FormData($("#d-form"));
+    const d = {};
+    for (const [k, v] of fd.entries()) if (!k.startsWith("c_")) d[k] = v;
+    d.criterios = {
+      presupuesto: Boolean(fd.get("c_presupuesto")), video: Boolean(fd.get("c_video")), llamada: Boolean(fd.get("c_llamada")),
+    };
+    if (abierto) d.id = abierto.id;
+    return d;
+  }
+
+  function reemplazar(lead) {
+    const i = LEADS.findIndex((x) => x.id === lead.id);
+    if (i >= 0) LEADS[i] = lead; else LEADS.unshift(lead);
+    pintar(); abrir(lead);
+  }
+
+  const cerrar = () => { $("#drawer").classList.add("hidden"); abierto = null; };
+  $("#d-close").addEventListener("click", cerrar);
+  $("#drawer").addEventListener("click", (e) => { if (e.target.id === "drawer") cerrar(); });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("#drawer").classList.contains("hidden")) cerrar(); });
+
+  $("#d-save").addEventListener("click", async () => {
+    const b = $("#d-save"); b.disabled = true; $("#d-msg").textContent = "Guardando…";
+    try { const r = await api("guardar", leerForm()); reemplazar(r.lead); toast("Guardado"); }
+    catch (e) { $("#d-msg").textContent = e.message; }
+    finally { b.disabled = false; }
+  });
+
+  $("#d-push").addEventListener("click", async () => {
+    if (!abierto) return;
+    const b = $("#d-push"); b.disabled = true; $("#d-msg").textContent = "Enviando a Pipedrive…";
+    try {
+      await api("guardar", leerForm());
+      const r = await api("pipedrive", { id: abierto.id });
+      reemplazar(r.lead); toast("Listo, quedó en Pipedrive");
+    } catch (e) { $("#d-msg").textContent = e.message; b.disabled = false; }
+  });
+
+  $("#d-delete").addEventListener("click", async () => {
+    if (!abierto) return;
+    const b = $("#d-delete");
+    if (b.dataset.confirm !== "1") { b.dataset.confirm = "1"; b.textContent = "¿Seguro? Toca otra vez"; setTimeout(() => { b.dataset.confirm = ""; b.textContent = "Borrar"; }, 3000); return; }
+    try {
+      await api("borrar", { id: abierto.id });
+      LEADS = LEADS.filter((l) => l.id !== abierto.id); cerrar(); pintar(); toast("Borrado");
+    } catch (e) { $("#d-msg").textContent = e.message; }
+    b.dataset.confirm = ""; b.textContent = "Borrar";
+  });
+
+  if (KEY) cargar().catch(() => salir());
+})();
+</script>
+</body>
+</html>
